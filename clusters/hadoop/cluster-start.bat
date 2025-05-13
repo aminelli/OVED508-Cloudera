@@ -24,15 +24,15 @@ pause
 echo "== CREAZIONE cluster YARN =="
 
 echo "== CREAZIONE di NR 1 RESOURCE MANAGER =="
-docker run -d --name resourcemanager --hostname resourcemanager --network net-hadoop --env-file hadoop.env -e SERVICE_PRECONDITION="namenode:9000 namenode:9870 datanode1:9864 datanode2:9864 datanode3:9864" aci-hadoop:3.4.1-resourcemanager
+docker run -d --name resourcemanager --hostname resourcemanager --network net-hadoop -p 8088:8088 --env-file hadoop.env -e SERVICE_PRECONDITION="namenode:9000 namenode:9870 datanode1:9864 datanode2:9864 datanode3:9864" aci-hadoop:3.4.1-resourcemanager
 pause
 
 echo "== CREAZIONE di NR 1 NODE MANAGER =="
-docker run -d --name nodemanager --hostname nodemanager --network net-hadoop --env-file hadoop.env -e SERVICE_PRECONDITION="namenode:9000 namenode:9870 datanode1:9864 datanode2:9864 datanode3:9864 resourcemanager:8088" aci-hadoop:3.4.1-nodemanager
+docker run -d --name nodemanager --hostname nodemanager --network net-hadoop -p 8042:8042 --env-file hadoop.env -e SERVICE_PRECONDITION="namenode:9000 namenode:9870 datanode1:9864 datanode2:9864 datanode3:9864 resourcemanager:8088" aci-hadoop:3.4.1-nodemanager
 pause
 
 echo "== CREAZIONE di NR 1 history server =="
-docker run -d --name historyserver --hostname historyserver --network net-hadoop --env-file hadoop.env -v hadoop_historyserver:/hadoop/yarn/timeline -e SERVICE_PRECONDITION="namenode:9000 namenode:9870 datanode1:9864 datanode2:9864 datanode3:9864 resourcemanager:8088" aci-hadoop:3.4.1-historyserver
+docker run -d --name historyserver --hostname historyserver --network net-hadoop -p 8188:8188 --env-file hadoop.env -v hadoop_historyserver:/hadoop/yarn/timeline -e SERVICE_PRECONDITION="namenode:9000 namenode:9870 datanode1:9864 datanode2:9864 datanode3:9864 resourcemanager:8088" aci-hadoop:3.4.1-historyserver
 
 echo "==> CLUSTER HDFS + YARN CREATO"
 
