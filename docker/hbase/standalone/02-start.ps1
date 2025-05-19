@@ -20,6 +20,7 @@ docker run `
 # Lanciare un'instanza hbase
 
 docker run `
+    -d `
     --name hbase `
     --hostname hbase `
     --network net-hadoop `
