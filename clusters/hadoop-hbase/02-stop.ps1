@@ -1,0 +1,1 @@
+docker compose --project-name hadoop-cluster down -v
