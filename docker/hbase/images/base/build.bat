@@ -1,4 +1,4 @@
 @echo off
 
-docker build -t aci-hbase:2.5.11 .
+docker build --no-cache -t aci-hbase:2.5.11 .
 

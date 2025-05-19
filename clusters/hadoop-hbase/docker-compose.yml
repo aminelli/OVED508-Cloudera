@@ -1,0 +1,229 @@
+version: "3"
+
+
+services:
+
+  # NODO MASTER DI HADOOP
+  namenode:
+    image: aci-hadoop:3.4.1-namenode
+    container_name: namenode
+    hostname: namenode
+    environment:
+      - CLUSTER_NAME=CLSTHADOOP
+    env_file:
+      - ./hadoop.env
+    ports:
+      - "9870:9870" # interfaccia web del namenode
+      - "9000:9000"
+    volumes:
+      - vol_hadoop_namemode:/hadoop/dfs/name
+    networks:
+      - net-cloudera
+
+  # DATA NODE 1 CLUSTER HADOOP
+  datanode1:
+    image: aci-hadoop:3.4.1-datanode
+    container_name: datanode1
+    hostname: datanode1
+    environment:
+      - SERVICE_PRECONDITION=namenode:9870
+    env_file:
+      - ./hadoop.env
+    ports:
+      - "9864:9864"
+    volumes:
+      - vol_hadoop_datanode1:/hadoop/dfs/data
+    networks:
+      - net-cloudera  
+
+  # DATA NODE 2 CLUSTER HADOOP
+  datanode2:
+    image: aci-hadoop:3.4.1-datanode
+    container_name: datanode2
+    hostname: datanode2
+    environment:
+      - SERVICE_PRECONDITION=namenode:9870
+    env_file:
+      - ./hadoop.env
+    ports:
+      - "9865:9864"
+    volumes:
+      - vol_hadoop_datanode2:/hadoop/dfs/data
+    networks:
+      - net-cloudera  
+
+  # DATA NODE 3 CLUSTER HADOOP
+  datanode3:
+    image: aci-hadoop:3.4.1-datanode
+    container_name: datanode3
+    hostname: datanode3
+    environment:
+      - SERVICE_PRECONDITION=namenode:9870
+    env_file:
+      - ./hadoop.env
+    ports:
+      - "9866:9864"
+    volumes:
+      - vol_hadoop_datanode3:/hadoop/dfs/data
+    networks:
+      - net-cloudera  
+
+  # YARN: RESOURCE MANAGER (MASTER)
+  resourcemanager:
+    image: aci-hadoop:3.4.1-resourcemanager
+    container_name: resourcemanager
+    hostname: resourcemanager
+    environment:             
+      - SERVICE_PRECONDITION=namenode:9000 namenode:9870 datanode1:9864 datanode2:9864 datanode3:9864
+    env_file:
+      - ./hadoop.env
+    ports:
+      - "8088:8088"
+      - "19888:19888"
+    networks:
+      - net-cloudera 
+
+  # YARN: NODE MANAGER 1
+  nodemanager1:
+    image: aci-hadoop:3.4.1-nodemanager
+    container_name: nodemanager1
+    hostname: nodemanager1
+    environment:             
+      - SERVICE_PRECONDITION=namenode:9000 namenode:9870 datanode1:9864 datanode2:9864 datanode3:9864 resourcemanager:8088
+    env_file:
+      - ./hadoop.env
+    networks:
+      - net-cloudera 
+
+  # YARN: NODE MANAGER 2
+  nodemanager2:
+    image: aci-hadoop:3.4.1-nodemanager
+    container_name: nodemanager2
+    hostname: nodemanager2
+    environment:
+      - SERVICE_PRECONDITION=namenode:9000 namenode:9870 datanode1:9864 datanode2:9864 datanode3:9864 resourcemanager:8088
+    env_file:
+      - ./hadoop.env
+    networks:
+      - net-cloudera 
+
+  # YARN: HISTORY SERVER
+  historyserver:
+    image: aci-hadoop:3.4.1-historyserver
+    container_name: historyserver
+    hostname: historyserver
+    environment:
+      - SERVICE_PRECONDITION=namenode:9000 namenode:9870 datanode1:9864 datanode2:9864 datanode3:9864 resourcemanager:8088
+    env_file:
+      - ./hadoop.env
+    ports:
+      - "8188:8188"
+      - "19889:19888"
+    volumes:
+      - vol_hadoop_historyserver:/hadoop/yarn/timeline
+    networks:
+      - net-cloudera  
+
+  # HBASE: ZOOKEPER
+  hbasezk:
+    image: aci-hbase:2.5.11-zookeeper
+    container_name: hbasezk
+    hostname: hbasezk
+    ports:
+      - "2181:2181"
+    depends_on:
+      - namenode
+    networks:
+      - net-cloudera  
+    volumes:
+      - ./config/hbase-site.xml:/opt/hbase/conf/hbase-site.xml  
+      - ./config/regionservers:/opt/hbase/conf/regionservers  
+
+  # HBASE: MASTER
+  hbasemaster:
+    image: aci-hbase:2.5.11-master
+    container_name: hbasemaster
+    hostname: hbasemaster
+    ports:
+      - "16010:16010"
+    depends_on:
+      - namenode
+      - hbasezk
+    networks:
+      - net-cloudera
+    volumes:
+      - ./config/hbase-site.xml:/opt/hbase/conf/hbase-site.xml  
+      - ./config/regionservers:/opt/hbase/conf/regionservers  
+
+  # HBASE: REGION SERVER 1
+  hbaseregion1:
+    image: aci-hbase:2.5.11-regionserver
+    container_name: hbaseregion1
+    hostname: hbaseregion1
+    depends_on:
+      - hbasemaster
+      - hbasezk
+    networks:
+      - net-cloudera
+    volumes:
+      - ./config/hbase-site.xml:/opt/hbase/conf/hbase-site.xml  
+      - ./config/regionservers:/opt/hbase/conf/regionservers  
+
+  # HBASE: REGION SERVER 2
+  hbaseregion2:
+    image: aci-hbase:2.5.11-regionserver
+    container_name: hbaseregion2
+    hostname: hbaseregion2
+    depends_on:
+      - hbasemaster
+      - hbasezk
+    networks:
+      - net-cloudera
+    volumes:
+      - ./config/hbase-site.xml:/opt/hbase/conf/hbase-site.xml  
+      - ./config/regionservers:/opt/hbase/conf/regionservers  
+
+  # HBASE: REGION SERVER 3
+  hbaseregion3:
+    image: aci-hbase:2.5.11-regionserver
+    container_name: hbaseregion3
+    hostname: hbaseregion3
+    depends_on:
+      - hbasemaster
+      - hbasezk
+    networks:
+      - net-cloudera
+    volumes:
+      - ./config/hbase-site.xml:/opt/hbase/conf/hbase-site.xml  
+      - ./config/regionservers:/opt/hbase/conf/regionservers  
+
+  # HUE: WEB APP
+  hue:
+    image: gethue/hue:latest
+    container_name: hue
+    hostname: hue
+    ports:
+      - "8888:8888"
+    networks:
+      - net-cloudera
+    volumes:
+      - ./hue.ini:/usr/share/hue/desktop/conf/hue.ini
+      - ./conf:/etc/hbase/conf
+   
+
+volumes:
+  vol_hadoop_namemode:
+    driver: local
+  vol_hadoop_datanode1:
+    driver: local
+  vol_hadoop_datanode2:
+    driver: local
+  vol_hadoop_datanode3:
+    driver: local
+  vol_hadoop_historyserver:
+    driver: local
+
+networks:
+  net-cloudera:
+    name: net-cloudera
+    driver: bridge
