@@ -206,9 +206,23 @@ services:
       - "8888:8888"
     networks:
       - net-cloudera
+    depends_on:
+      - namenode
+      - datanode1
+      - resourcemanager
+      - historyserver
+    environment:
+      HUE_HADOOP_HDFS_PORT: 9000
+      HUE_HADOOP_MR_HISTORY_SERVER: historyserver:10020
+      HUE_HADOOP_YARN_RESOURCE_MANAGER: resourcemanager:8032
+      HUE_HADOOP_YARN_PROXY_API_URL: resourcemanager:8088
+      HUE_HADOOP_YARN_HISTORY_SERVER_URL: historyserver:19888
+      HUE_HADOOP_HDFS_WEBHDFS_URL: http://namenode:9870/webhdfs/v1
+
+      
     volumes:
       - ./hue.ini:/usr/share/hue/desktop/conf/hue.ini
-      - ./conf:/etc/hbase/conf
+    #  - ./conf:/etc/hbase/conf
    
 
 volumes:
@@ -221,6 +235,8 @@ volumes:
   vol_hadoop_datanode3:
     driver: local
   vol_hadoop_historyserver:
+    driver: local
+  vol_hue:
     driver: local
 
 networks:
